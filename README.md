@@ -44,4 +44,4 @@ Open the INI file located next to the executable and adjust the parameters:
 
 ## Requirements
 
-- **FFmpeg** DLL libraries placed in the same directory as the executable for audio decoding and encoding.
+- **[FFmpeg DLL libraries](https://github.com/System233/ffmpeg-msvc-prebuilt/releases/download/ffmpeg-9.1-dev-3237-ga6c7695/ffmpeg-9.1-dev-3237-ga6c7695_x64-windows-shared-gpl.zip)** placed in the same directory as the executable for audio decoding and encoding.
