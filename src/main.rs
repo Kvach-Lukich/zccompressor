@@ -53,8 +53,8 @@ fn cfg() -> &'static Cfg {
 
 fn getcfg()->Cfg{
     let ini_content = fs::read_to_string(env::current_exe().unwrap().parent().unwrap().join("config.ini")).expect("Config didn't loaded");
-    #[allow(unused_mut)]
     let mut cfg: Cfg = deser_ini::from_str(&ini_content).expect("Config didn't parsed");
+    if cfg.OUTPUT_CODEC=="wavpack" { cfg.OUTPUT_CODEC="wv".to_string(); }
     cfg
 }
 
@@ -378,7 +378,7 @@ fn save_pcm_f32_to_wav_in_memory(
             }
            
         },
-        "wv" | "wavpack" =>{
+        "wv" =>{
             match cfg().OUTPUT_FORMAT.as_str(){
                 "s24" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("s32p").set_bits_per_raw_sample(24).set_audio_codec_opt("bits_per_raw_sample", "24").set_audio_codec_opt("compression_level", "3"),
                 "s32" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("s32p").set_audio_codec_opt("compression_level", "3"),
