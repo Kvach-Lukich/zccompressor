@@ -25,12 +25,18 @@ struct Cfg{
     OUTPUT_FORMAT: String,
     #[deser(default = "pcm_f32le".to_string())]
     OUTPUT_WAVFORMAT: String,
+    #[deser(default = 44100)]
+    OUTPUT_SAMPLERATE: i32,
+    #[deser(default = 9.0)]
+    OUTPUT_LOWCUT: f32,
     #[deser(default)]
     ADD_POSTFIXDR: bool,
     #[deser(default = 0)]
     INPUT_RESAMPLE:i32,
     #[deser(default = 20.0)]
     SEARCH_FREQ:f32,
+    #[deser(default = "none".to_string())]
+    DITHER_METHOD: String,
 }
 
 
@@ -348,6 +354,19 @@ fn save_pcm_f32_to_wav_in_memory(
         .set_format_opt("ch_layout", ch_layout);
 
     let mut output = Output::new(output_path).set_format(&cfg().OUTPUT_CODEC);
+    
+    let mut filter:String=String::new();
+    if cfg().OUTPUT_LOWCUT>0.0 {
+        let f=cfg().OUTPUT_LOWCUT;
+        filter=format!("highpass=f={f}, areverse,highpass=f={f}, areverse,highpass=f={f}, areverse,highpass=f={f}, areverse");
+    }
+    if cfg().OUTPUT_SAMPLERATE>0{
+        if !filter.is_empty() { filter.push(','); }
+        filter=format!("{} aresample=resampler=soxr:osr={}:precision=28:dither_method={}", filter, cfg().OUTPUT_SAMPLERATE, cfg().DITHER_METHOD);
+    }
+    if !filter.is_empty() {
+        output=output.set_audio_filter(filter);
+    }
     match cfg().OUTPUT_CODEC.as_str(){
         "wav" => output=output.set_audio_codec(&cfg().OUTPUT_WAVFORMAT),
         "flac" => {
@@ -371,6 +390,7 @@ fn save_pcm_f32_to_wav_in_memory(
         _=> winstop("Wrong codec"),
         
     }
+
     // if &cfg().OUTPUT_CODEC ==r"wav"{
     //     output=output.set_audio_codec(&cfg().OUTPUT_WAVFORMAT);
     // }
