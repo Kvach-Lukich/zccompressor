@@ -1,0 +1,24 @@
+[package]
+name = "zccompressor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ez-ffmpeg = "0.20"
+ffmpeg-sys-next = "9.1"
+rayon = "*"
+deser = { version = "*", features = ["derive"] }
+deser-ini = "*"
+
+[target.'cfg(windows)'.dependencies]
+press-btn-continue = "*"
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "*"
+
+[profile.release]
+opt-level = 3
+strip = true
+lto = "fat"
+codegen-units = 1
+panic = "abort"

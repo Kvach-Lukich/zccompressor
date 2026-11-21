@@ -1,0 +1,7 @@
+/target
+/libs/ffmpeg/*
+!/libs/ffmpeg/download_link.txt
+/bkp
+/*.cmd
+!/build.cmd
+/*.ps1
