@@ -21,8 +21,10 @@ struct Cfg{
     NORMALISE: f32,
     #[deser(default = "wav".to_string())]
     OUTPUT_CODEC: String,
-    #[deser(default = "pcm_f32le".to_string())]
+    #[deser(default = "s32".to_string())]
     OUTPUT_FORMAT: String,
+    #[deser(default = "pcm_f32le".to_string())]
+    OUTPUT_WAVFORMAT: String,
     #[deser(default)]
     ADD_POSTFIXDR: bool,
     #[deser(default = 0)]
@@ -243,7 +245,7 @@ fn compressor(file: &String, out_dir:&String)-> Result<(), Box<dyn std::error::E
     drop(channel_streams);
     let filename=Path::new(file).file_stem().unwrap_or_default().to_string_lossy();
     let mut out_path=format!("{}{SL}{}.{}",out_dir, filename, cfg().OUTPUT_CODEC);
-    if Path::new(&out_path).exists(){
+    if cfg().ADD_POSTFIXDR || Path::new(&out_path).exists(){
         out_path=format!("{}{SL}{}_dr{}.{}",out_dir, filename,cfg().DR ,cfg().OUTPUT_CODEC);
     }
     save_pcm_f32_to_wav_in_memory(
@@ -345,9 +347,34 @@ fn save_pcm_f32_to_wav_in_memory(
         .set_format_opt("channels", channels.to_string())
         .set_format_opt("ch_layout", ch_layout);
 
-    let output = Output::new(output_path)
-        .set_format(&cfg().OUTPUT_CODEC)
-        .set_audio_codec(&cfg().OUTPUT_FORMAT);
+    let mut output = Output::new(output_path).set_format(&cfg().OUTPUT_CODEC);
+    match cfg().OUTPUT_CODEC.as_str(){
+        "wav" => output=output.set_audio_codec(&cfg().OUTPUT_WAVFORMAT),
+        "flac" => {
+            match cfg().OUTPUT_FORMAT.as_str(){
+                "s24" => output=output.set_audio_codec("flac").set_audio_sample_fmt("s32"),
+                "s32" => output=output.set_audio_codec("flac").set_audio_sample_fmt("s32").set_audio_codec_opt("bits_per_raw_sample", "32").set_audio_codec_opt("strict", "experimental"),
+                "s16" => output=output.set_audio_codec("flac").set_audio_sample_fmt("s16"),
+                _=> winstop("Unsupported bit depth"),
+            }
+           
+        },
+        "wv" | "wavpack" =>{
+            match cfg().OUTPUT_FORMAT.as_str(){
+                "s24" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("s32p").set_bits_per_raw_sample(24).set_audio_codec_opt("bits_per_raw_sample", "24").set_audio_codec_opt("compression_level", "3"),
+                "s32" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("s32p").set_audio_codec_opt("compression_level", "3"),
+                "f32" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("fltp").set_audio_codec_opt("compression_level", "3"),
+                "s16" => output=output.set_audio_codec("wavpack").set_audio_sample_fmt("s16p").set_audio_codec_opt("compression_level", "3"),
+                _=> winstop("Unsupported bit depth"),
+            }
+        },
+        _=> winstop("Wrong codec"),
+        
+    }
+    // if &cfg().OUTPUT_CODEC ==r"wav"{
+    //     output=output.set_audio_codec(&cfg().OUTPUT_WAVFORMAT);
+    // }
+        
 
     let context = FfmpegContext::builder()
         .input(input)
