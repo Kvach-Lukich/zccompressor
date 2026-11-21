@@ -36,7 +36,7 @@ Open the INI file located next to the executable and adjust the parameters:
 
 ### 2. Processing Files
 
-1. Select one or more audio files (or folders, if supported) and drag and drop them directly onto the program's executable (**Drag & Drop**).
+1. Select one or more audio files (not a folder) and drag and drop them directly onto the program's executable (**Drag & Drop**).
 
 2. A terminal window will open and begin multi-threaded processing for all queued tracks.
 
