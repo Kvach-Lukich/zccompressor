@@ -37,8 +37,9 @@ struct Cfg{
     SEARCH_FREQ:f32,
     #[deser(default = "none".to_string())]
     DITHER_METHOD: String,
+    #[deser(default = 3.0)]
+    DR_WINDOW: f32,
 }
-
 
 fn winstop(message:&str)->!{
     press_btn_continue::wait(message).unwrap();
@@ -80,9 +81,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         cfg().DEFAULT_OUTPATH.clone()
     };
 
-    // for file in files.iter() {
-    //     compressor(file,&out_dir)?;
-    // }
     if files.len()>threads{
         let pool = ThreadPoolBuilder::new().num_threads(threads).build().expect("Failed to create rayon thread pool");
 
@@ -115,10 +113,8 @@ fn compressor(file: &String, out_dir:&String)-> Result<(), Box<dyn std::error::E
 
     let nchannels: usize = audio_data.channels() as usize;
     let channel_layout =audio_data.channel_layout().to_string();
-    let slen: usize = audio_data.as_slice().len() / nchannels;
     let sample_rate =audio_data.sample_rate();
-    let trimin = (sample_rate*3) as usize;
-    let triminslicelen: usize =(slen+trimin-1)/trimin;
+    let slen: usize = audio_data.as_slice().len() / nchannels;
     let sslen: usize=(sample_rate as f32/cfg().SEARCH_FREQ).ceil() as usize;
     let normalise:f32=10.0_f32.powf(cfg().NORMALISE / 20.0);
 
@@ -135,12 +131,102 @@ fn compressor(file: &String, out_dir:&String)-> Result<(), Box<dyn std::error::E
     }
     drop(audio_data);
 
-    if slen<2*sslen{
-        println!("To short audio!");
+    let channel_dr=getdr(&channel_streams, sample_rate);
+    if channel_dr.is_empty() {
+        return Ok(());
+    }
+    let avgdr=*channel_dr.last().unwrap();
+    if avgdr<=cfg().DR{
+        println!("To compressed audio!");
     }
 
+    println!("DR: {:.2}",avgdr);
+    println!("Compress...");
+
+    let newpeak:f32=10.0_f32.powf((cfg().DR-avgdr) / 20.0);
+
+    for channel in channel_streams.iter_mut() {
+        let mut i: usize = sslen;
+        let rsize=channel.len()-sslen;
+        while i<rsize {
+                        
+            if channel[i].abs()>=newpeak {
+                let p: f32 = if channel[i] > 0.0 { 1.0 } else { -1.0 };
+                let mut j: usize = i;
+                let mut curmax:f32=0.0;
+                let mut rzeroindex:usize=0;
+                while j<channel.len()-1 && i+sslen>j {
+                    curmax=curmax.max(channel[j].abs());
+                    if  channel[j]*p>=0.0 && channel[j+1]*p<0.0{
+                        rzeroindex=j;
+                        break;
+                    }
+                    j+=1;
+                }
+
+                let mut l: usize = i;
+                let mut lzeroindex:usize=0;
+                while l>1 && i-sslen<l {
+                    if channel[l]*p>=0.0 && channel[l-1]*p<0.0{
+                        lzeroindex=l;
+                        break;
+                    }
+                    l-=1;
+                }
+                if rzeroindex>0 && rzeroindex<channel.len() && lzeroindex>0 && lzeroindex<channel.len() && curmax>newpeak{
+                    let rdivider:f32=newpeak/curmax;
+                    channel[lzeroindex..=rzeroindex].iter_mut().for_each(|s| *s *= rdivider);
+                    i=rzeroindex;
+                }
+
+            }
+            i+=1;
+        }
+    }
+
+    let channel_dr=getdr(&channel_streams, sample_rate);
+    println!("DR: {:.2}",channel_dr.last().unwrap());
+
+    let newpeak=normalise/newpeak;    
+    let mut interleaved: Vec<f32> = Vec::with_capacity(slen * nchannels);
+    for i in 0..slen {
+        for ch in 0..nchannels {
+            interleaved.push(channel_streams[ch][i]*newpeak);
+        }
+    }
+
+    drop(channel_streams);
+    println!("Convert and save...");
+    let filename=Path::new(file).file_stem().unwrap_or_default().to_string_lossy();
+    let mut out_path=format!("{}{SL}{}.{}",out_dir, filename, cfg().OUTPUT_CODEC);
+    if cfg().ADD_POSTFIXDR || Path::new(&out_path).exists(){
+        out_path=format!("{}{SL}{}_dr{}.{}",out_dir, filename,cfg().DR ,cfg().OUTPUT_CODEC);
+    }
+    save_pcm_f32_to_wav_in_memory(
+        &interleaved,
+        sample_rate,
+        nchannels as u16,
+        channel_layout,
+        out_path.as_str(),
+    )?;
+    Ok(())
+}
+
+fn getdr(channel_streams: &[Vec<f32>], sample_rate: u32) ->Vec<f32>{
+    let nchannels=channel_streams.len();
+    
+    let slen: usize = channel_streams[0].len();
+    let sslen: usize=(sample_rate as f32/cfg().SEARCH_FREQ).ceil() as usize;
+
+    if slen<2*sslen{
+        println!("To short audio!");
+        return Vec::new();
+    }
+    
+    let trimin = (sample_rate as f32*cfg().DR_WINDOW).round() as usize;
+    let triminslicelen: usize =(slen+trimin-1)/trimin;
     let mut channel_rms: Vec<f32> = Vec::with_capacity(nchannels);
-    let mut channel_dr: Vec<f32> = Vec::with_capacity(nchannels);
+    let mut channel_dr: Vec<f32> = Vec::with_capacity(nchannels+1);
     let mut truepeak: f32=0.0;
     let mut avgdr: f32=0.0;
     for channel in channel_streams.iter() {
@@ -189,79 +275,8 @@ fn compressor(file: &String, out_dir:&String)-> Result<(), Box<dyn std::error::E
         avgdr+=dr;
     }
     avgdr=avgdr/nchannels as f32;
-
-    if avgdr<=cfg().DR{
-        println!("To compressed audio!");
-    }
-    for (i,prtdr) in channel_dr.iter().enumerate(){
-        println!("DR ch{}: {:.2}",i,prtdr);
-    }
-    println!("DR: {:.2}",avgdr);
-    println!("Compress...");
-
-    let newpeak:f32=10.0_f32.powf((cfg().DR-avgdr) / 20.0);
-
-    for channel in channel_streams.iter_mut() {
-        let mut i: usize = sslen;
-        let rsize=channel.len()-sslen;
-        while i<rsize {
-                        
-            if channel[i].abs()>=newpeak {
-                let p: f32 = if channel[i] > 0.0 { 1.0 } else { -1.0 };
-                let mut j: usize = i;
-                let mut curmax:f32=0.0;
-                let mut rzeroindex:usize=0;
-                while j<channel.len()-1 && i+sslen>j {
-                    curmax=curmax.max(channel[j].abs());
-                    if  channel[j]*p>0.0 && channel[j+1]*p<0.0{
-                        rzeroindex=j;
-                        break;
-                    }
-                    j+=1;
-                }
-
-                let mut l: usize = i;
-                let mut lzeroindex:usize=0;
-                while l>1 && i-sslen<l {
-                    if channel[l]*p>0.0 && channel[l-1]*p<0.0{
-                        lzeroindex=l;
-                        break;
-                    }
-                    l-=1;
-                }
-                if rzeroindex>0 && rzeroindex<channel.len() && lzeroindex>0 && lzeroindex<channel.len() && curmax>newpeak{
-                    let rdivider:f32=newpeak/curmax;
-                    channel[lzeroindex..=rzeroindex].iter_mut().for_each(|s| *s *= rdivider);
-                    i=rzeroindex;
-                }
-
-            }
-            i+=1;
-        }
-    }
-
-    let newpeak=normalise/newpeak;    
-    let mut interleaved: Vec<f32> = Vec::with_capacity(slen * nchannels);
-    for i in 0..slen {
-        for ch in 0..nchannels {
-            interleaved.push(channel_streams[ch][i]*newpeak);
-        }
-    }
-
-    drop(channel_streams);
-    let filename=Path::new(file).file_stem().unwrap_or_default().to_string_lossy();
-    let mut out_path=format!("{}{SL}{}.{}",out_dir, filename, cfg().OUTPUT_CODEC);
-    if cfg().ADD_POSTFIXDR || Path::new(&out_path).exists(){
-        out_path=format!("{}{SL}{}_dr{}.{}",out_dir, filename,cfg().DR ,cfg().OUTPUT_CODEC);
-    }
-    save_pcm_f32_to_wav_in_memory(
-        &interleaved,
-        sample_rate,
-        nchannels as u16,
-        channel_layout,
-        out_path.as_str(),
-    )?;
-    Ok(())
+    channel_dr.push(avgdr);
+    channel_dr
 }
 
 use ffmpeg_sys_next::AVERROR_EOF;
@@ -391,11 +406,6 @@ fn save_pcm_f32_to_wav_in_memory(
         _=> winstop("Wrong codec"),
         
     }
-
-    // if &cfg().OUTPUT_CODEC ==r"wav"{
-    //     output=output.set_audio_codec(&cfg().OUTPUT_WAVFORMAT);
-    // }
-        
 
     let context = FfmpegContext::builder()
         .input(input)
