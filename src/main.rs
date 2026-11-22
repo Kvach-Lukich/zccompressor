@@ -363,6 +363,7 @@ fn save_pcm_f32_to_wav_in_memory(
     if cfg().OUTPUT_SAMPLERATE>0{
         if !filter.is_empty() { filter.push(','); }
         filter=format!("{} aresample=resampler=soxr:osr={}:precision=28:dither_method={}", filter, cfg().OUTPUT_SAMPLERATE, cfg().DITHER_METHOD);
+        output=output.set_audio_sample_rate(cfg().OUTPUT_SAMPLERATE);
     }
     if !filter.is_empty() {
         output=output.set_audio_filter(filter);
