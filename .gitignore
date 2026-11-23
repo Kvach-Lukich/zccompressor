@@ -1,6 +1,9 @@
 /target
 /libs/ffmpeg/*
+/libs/mac_ffmpeg/*
 !/libs/ffmpeg/download_link.txt
+log.*
+*.log
 /bkp
 /*.cmd
 !/build.cmd
