@@ -13,6 +13,9 @@ deser-ini = "*"
 [target.'cfg(windows)'.dependencies]
 press-btn-continue = "*"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+crossterm = "*"
+
 [target.'cfg(windows)'.build-dependencies]
 winresource = "*"
 

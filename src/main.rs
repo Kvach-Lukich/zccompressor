@@ -11,6 +11,11 @@ use std::thread;
 use ez_ffmpeg::frame_export::SampleExtractor;
 use ez_ffmpeg::{FfmpegContext, FfmpegScheduler, Input, Output};
 
+#[cfg(target_os = "macos")]
+use crossterm::event::{self, Event, KeyCode};
+#[cfg(target_os = "macos")]
+use std::io::{self, Write};
+
 #[derive(Debug, Deserialize, Serialize)]
 #[allow(non_snake_case)]
 struct Cfg{
@@ -41,8 +46,29 @@ struct Cfg{
     DR_WINDOW: f32,
 }
 
+#[cfg(target_os = "macos")]
+fn wait_any_key(message: &str) -> io::Result<()> {
+    print!("{}", message);
+    io::stdout().flush()?; 
+    crossterm::terminal::enable_raw_mode()?;
+
+    loop {
+        if let Event::Key(key_event) = event::read()? {
+            if key_event.code != KeyCode::Null {
+                break;
+            }
+        }
+    }
+    crossterm::terminal::disable_raw_mode()?;
+    println!();
+    Ok(())
+}
+
 fn winstop(message:&str)->!{
+    #[cfg(target_os = "windows")]
     press_btn_continue::wait(message).unwrap();
+    #[cfg(target_os = "macos")]
+    wait_any_key(message).unwrap();
     std::process::exit(1);
 }
 
@@ -102,8 +128,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             eprintln!("Error processing {}: {e}", files[0]);
         }
     }
-
+    #[cfg(target_os = "windows")]
     press_btn_continue::wait(r"Press any key...").unwrap();
+    #[cfg(target_os = "macos")]
+    wait_any_key("Press Enter...").unwrap();
     Ok(())
 }
 
