@@ -44,6 +44,8 @@ struct Cfg{
     DITHER_METHOD: String,
     #[deser(default = 3.0)]
     DR_WINDOW: f32,
+    #[deser(default = true)]
+    PRESS_ATEND: bool,
 }
 
 #[cfg(target_os = "macos")]
@@ -65,10 +67,14 @@ fn wait_any_key(message: &str) -> io::Result<()> {
 }
 
 fn winstop(message:&str)->!{
-    #[cfg(target_os = "windows")]
-    press_btn_continue::wait(message).unwrap();
-    #[cfg(target_os = "macos")]
-    wait_any_key(message).unwrap();
+    if cfg().PRESS_ATEND==true{
+        #[cfg(target_os = "windows")]
+        press_btn_continue::wait(message).unwrap();
+        #[cfg(target_os = "macos")]
+        wait_any_key(message).unwrap();
+    }else {
+        println!("{message}");
+    }
     std::process::exit(1);
 }
 
@@ -128,10 +134,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             eprintln!("Error processing {}: {e}", files[0]);
         }
     }
-    // #[cfg(target_os = "windows")]
-    // press_btn_continue::wait(r"Press any key...").unwrap();
-    // #[cfg(target_os = "macos")]
-    // wait_any_key("Press Enter...").unwrap();
+    if cfg().PRESS_ATEND==true{
+        #[cfg(target_os = "windows")]
+        press_btn_continue::wait(r"Press any key...").unwrap();
+        #[cfg(target_os = "macos")]
+        wait_any_key("Press Enter...").unwrap();
+    }
     Ok(())
 }
 
