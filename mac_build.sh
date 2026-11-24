@@ -14,5 +14,5 @@ export OSXCROSS_PKG_CONFIG_USE_NATIVE_VARIABLES="1"
 #export PKG_CONFIG_PATH="$FFMPEG_LIB_DIR/pkgconfig"
 #export PKG_CONFIG_LIBDIR="$FFMPEG_LIB_DIR/pkgconfig"
 
-cargo build --target aarch64-apple-darwin --release && \
+cargo build --target aarch64-apple-darwin --release
 #rcodesign sign ./target/aarch64-apple-darwin/release/zccompressor

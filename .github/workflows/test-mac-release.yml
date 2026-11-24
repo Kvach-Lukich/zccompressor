@@ -15,15 +15,15 @@ jobs:
           curl -fL -o ./mac_zccompressor.zip \
             "https://github.com/Kvach-Lukich/zccompressor/releases/download/test_build/mac_zccompressor.zip"
 
-          ditto -x -k ./mac_zccompressor.zip ./
+          unzip -o ./mac_zccompressor.zip
 
           cd ./mac_zccompressor
 
           zsh sign.command 2>&1 | tee ./log1.txt
           SIGN_RC=$?
 
-          # zsh compress.command 2>&1 | tee ./log2.txt
-          # COMP_RC=$?
+          zsh compress.command 2>&1 | tee ./log2.txt
+          COMP_RC=$?
 
           cd ..
           zip -r ./done.zip ./mac_zccompressor

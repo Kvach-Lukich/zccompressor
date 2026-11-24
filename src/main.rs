@@ -128,10 +128,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             eprintln!("Error processing {}: {e}", files[0]);
         }
     }
-    #[cfg(target_os = "windows")]
-    press_btn_continue::wait(r"Press any key...").unwrap();
-    #[cfg(target_os = "macos")]
-    wait_any_key("Press Enter...").unwrap();
+    // #[cfg(target_os = "windows")]
+    // press_btn_continue::wait(r"Press any key...").unwrap();
+    // #[cfg(target_os = "macos")]
+    // wait_any_key("Press Enter...").unwrap();
     Ok(())
 }
 
