@@ -15,7 +15,7 @@ jobs:
           curl -fL -o ./mac_zccompressor.zip \
             "https://github.com/Kvach-Lukich/zccompressor/releases/download/test_build/mac_zccompressor.zip"
 
-          unzip -o ./mac_zccompressor.zip
+          ditto -x -k ./mac_zccompressor.zip ./
 
           cd ./mac_zccompressor
 
