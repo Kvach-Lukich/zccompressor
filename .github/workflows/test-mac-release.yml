@@ -22,8 +22,8 @@ jobs:
           zsh sign.command 2>&1 | tee ./log1.txt
           SIGN_RC=$?
 
-          zsh compress.command 2>&1 | tee ./log2.txt
-          COMP_RC=$?
+          # zsh compress.command 2>&1 | tee ./log2.txt
+          # COMP_RC=$?
 
           cd ..
           zip -r ./done.zip ./mac_zccompressor
