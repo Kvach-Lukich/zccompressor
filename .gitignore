@@ -3,6 +3,8 @@
 !/libs/ffmpeg/download_link.txt
 /libs/mac_ffmpeg/*
 !/libs/mac_ffmpeg/download_link.txt
+/mac_zccompressor
+/mac_zccompressor.zip
 log.*
 *.log
 /bkp

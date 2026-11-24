@@ -1,0 +1,43 @@
+name: Test macOS Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-on-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Download, unpack, run scripts and pack result
+        shell: bash
+        run: |
+          set -o pipefail
+
+          curl -fL -o ./mac_zccompressor.zip \
+            "https://github.com/Kvach-Lukich/zccompressor/releases/download/test_build/mac_zccompressor.zip"
+
+          unzip -o ./mac_zccompressor.zip
+
+          cd ./mac_zccompressor
+
+          zsh sign.command 2>&1 | tee ./log1.txt
+          SIGN_RC=$?
+
+          zsh compress.command 2>&1 | tee ./log2.txt
+          COMP_RC=$?
+
+          cd ..
+          zip -r ./done.zip ./mac_zccompressor
+
+          if [ "$SIGN_RC" -ne 0 ]; then
+            exit "$SIGN_RC"
+          fi
+          if [ "$COMP_RC" -ne 0 ]; then
+            exit "$COMP_RC"
+          fi
+
+      - name: Upload done.zip artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: done
+          path: ./done.zip
