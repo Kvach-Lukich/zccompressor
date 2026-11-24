@@ -1,5 +1,11 @@
 /target
 /libs/ffmpeg/*
+<<<<<<< Updated upstream
+=======
+/libs/mac_ffmpeg/*
+/mac_zccompressor
+/mac_zccompressor.zip
+>>>>>>> Stashed changes
 !/libs/ffmpeg/download_link.txt
 /libs/mac_ffmpeg/*
 !/libs/mac_ffmpeg/download_link.txt
