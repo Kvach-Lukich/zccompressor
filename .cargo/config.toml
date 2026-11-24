@@ -1,3 +1,4 @@
 [target.aarch64-apple-darwin]
 linker = "/toolchain/macos/bin/oa64-clang"
 rustc-env = { CC = "/toolchain/macos/bin/oa64-clang", AR = "/toolchain/macos/bin/aarch64-apple-darwin25.1-ar" }
+rustflags = ["-C", "link-arg=-Wl,-rpath,@executable_path"]

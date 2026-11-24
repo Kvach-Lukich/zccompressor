@@ -11,8 +11,8 @@ export CFLAGS_aarch64_apple_darwin="--target=arm64-apple-macosx -mmacosx-version
 export CXXFLAGS_aarch64_apple_darwin="--target=arm64-apple-macosx -mmacosx-version-min=11.0 -isysroot /toolchain/macos/SDK/MacOSX26.1.sdk"
 export BINDGEN_EXTRA_CLANG_ARGS_aarch64_apple_darwin="--target=arm64-apple-macosx -isysroot /toolchain/macos/SDK/MacOSX26.1.sdk"
 export OSXCROSS_PKG_CONFIG_USE_NATIVE_VARIABLES="1"
-#export PKG_CONFIG_PATH="FFMPEG_LIB_DIR/pkgconfig"
-#export PKG_CONFIG_LIBDIR="FFMPEG_LIB_DIR/pkgconfig"
+#export PKG_CONFIG_PATH="$FFMPEG_LIB_DIR/pkgconfig"
+#export PKG_CONFIG_LIBDIR="$FFMPEG_LIB_DIR/pkgconfig"
 
-cargo build --target aarch64-apple-darwin --release
-rcodesign sign ./target/aarch64-apple-darwin/release/zccompressor
+cargo build --target aarch64-apple-darwin --release && \
+#rcodesign sign ./target/aarch64-apple-darwin/release/zccompressor
