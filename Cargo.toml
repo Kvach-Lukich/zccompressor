@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ez-ffmpeg = "0.20"
-ffmpeg-sys-next = "9.1"
+ez-ffmpeg = "*"
+ffmpeg-sys-next ="9.1.1"
 rayon = "*"
 deser = { version = "*", features = ["derive"] }
 deser-ini = "*"
@@ -13,7 +13,7 @@ deser-ini = "*"
 [target.'cfg(windows)'.dependencies]
 press-btn-continue = "*"
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(any(target_os = "macos", target_os = "linux"))'.dependencies]
 crossterm = "*"
 
 [target.'cfg(windows)'.build-dependencies]
