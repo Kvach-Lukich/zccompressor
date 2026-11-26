@@ -14,7 +14,7 @@ print -r -- "$script_src"
 rm -rf zcc.app
 if ! osacompile -o zcc.app <(print -rn -- "$script_src"); then
 	print -rn -- "$script_src" > zcc.applescript
-	osacompile zcc.applescript -o zcc.app
+	osacompile -o zcc.app zcc.applescript
 fi
 
 cp -f ../assets/zcc.icns zcc.app/Contents/Resources/applet.icns
