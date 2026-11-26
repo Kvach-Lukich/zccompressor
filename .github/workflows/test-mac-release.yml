@@ -25,10 +25,14 @@ jobs:
 
           ls
 
+          cd ../../
+
+          ditto -c -k --sequesterRsrc --keepParent ./zccompressor data.zip
+
       - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: done
           follow-symlinks: false
-          path: ./zccompressor
+          path: ./data.zip
