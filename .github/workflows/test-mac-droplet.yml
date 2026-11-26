@@ -1,0 +1,26 @@
+name: Test droplet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-on-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Download, unpack, run scripts and pack result
+        shell: bash
+        run: |
+          set -o pipefail
+
+          gh repo clone Kvach-Lukich/zccompressor
+
+          cd ./zccompressor/mac_install
+
+          zsh ./install.command
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: done
+          path: ./zccompressor/mac_install
