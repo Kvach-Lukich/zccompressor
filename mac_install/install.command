@@ -1,6 +1,7 @@
 #!/bin/zsh
 local script_dir="${0:a:h}"
 ls
+
 local script_src='on open droppedItems
 	set args to ""
 	repeat with anItem in droppedItems
@@ -8,11 +9,13 @@ local script_src='on open droppedItems
 	end repeat
 	do shell script "'"cd \\\"${script_dir}\\\" && \\\"${script_dir}/zccompressor\\\""'" & args
 end open'
-print -rn -- "$script_src"
 
-# rm -rf zcc.app
-command -v osacompile
-osacompile -o zcc.app <(print -rn -- "$script_src")
+print -r -- "$script_src"
+rm -rf zcc.app
+if ! osacompile -o zcc.app <(print -rn -- "$script_src"); then
+	print -rn -- "$script_src" > zcc.applescript
+	osacompile zcc.applescript -o zcc.app
+fi
 
 cp -f ../assets/zcc.icns zcc.app/Contents/Resources/applet.icns
 # mv -f zcc.app ../
