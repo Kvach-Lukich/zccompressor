@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let threads = thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
 
     let out_dir = if cfg().DEFAULT_OUTPATH.is_empty() || !Path::new(&cfg().DEFAULT_OUTPATH).exists(){
-        let dir = env::current_exe().unwrap().parent().unwrap().join("Output");
+        let dir = env::current_exe().unwrap().parent().unwrap().parent().unwrap().join("Output");
         fs::create_dir_all(&dir).expect("cannot create Output directory");
         dir.to_string_lossy().into_owned()
     } else {

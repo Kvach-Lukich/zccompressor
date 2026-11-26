@@ -22,4 +22,4 @@ if ! osacompile -o zcc.app <(print -rn -- "$script_src"); then
 fi
 
 cp -f ../assets/zcc.icns zcc.app/Contents/Resources/applet.icns
-# mv -f zcc.app ../
+mv -f zcc.app ../

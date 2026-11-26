@@ -12,32 +12,22 @@ jobs:
         run: |
           set -o pipefail
 
-          curl -fL -o ./mac_zccompressor.zip \
-            "https://github.com/Kvach-Lukich/zccompressor/releases/download/test_build/mac_zccompressor.zip"
+          curl -fL -o ./zccompressor.zip \
+            "https://github.com/Kvach-Lukich/zccompressor/releases/download/test/zccompressor.zip"
 
-          unzip -o ./mac_zccompressor.zip
+          unzip -o ./zccompressor.zip
 
-          cd ./mac_zccompressor
+          cd ./zccompressor/data
 
-          zsh sign.command 2>&1 | tee ./log1.txt
-          SIGN_RC=$?
+          ls
 
-          zsh compress.command 2>&1 | tee ./log2.txt
-          COMP_RC=$?
+          zsh ./install.command
 
-          cd ..
-          zip -r ./done.zip ./mac_zccompressor
+          ls
 
-          if [ "$SIGN_RC" -ne 0 ]; then
-            exit "$SIGN_RC"
-          fi
-          if [ "$COMP_RC" -ne 0 ]; then
-            exit "$COMP_RC"
-          fi
-
-      - name: Upload done.zip artifact
+      - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: done
-          path: ./done.zip
+          path: ./zccompressor
