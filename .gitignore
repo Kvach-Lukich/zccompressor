@@ -7,6 +7,7 @@
 !/libs/ffmpeg/download_link.txt
 /libs/mac_ffmpeg/*
 !/libs/mac_ffmpeg/download_link.txt
+/sign.command
 log.*
 *.txt
 *.log
