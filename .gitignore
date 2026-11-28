@@ -18,4 +18,5 @@ log.*
 !/linux_build.sh
 !/mac_build.sh
 !/linux_make_app.sh
+!/win_make_app.cmd
 /zccompressor.7z
