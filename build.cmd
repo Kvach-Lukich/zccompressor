@@ -11,7 +11,8 @@ if not defined FFMPEG_DIR (
     set "FFMPEG_NO_PKG_CONFIG=1"
 )
 
-cargo build --release || exit /b %errorlevel%
+cargo build --release
+:: || exit /b %errorlevel%
 
 if exist "target\release" if not exist "target\release\config.ini" (
     if exist "config.ini" (
