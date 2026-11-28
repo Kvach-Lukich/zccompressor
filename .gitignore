@@ -2,8 +2,8 @@
 /libs/ffmpeg/*
 /libs/mac_ffmpeg/*
 /libs/linux_ffmpeg/*
-/mac_zccompressor
-/mac_zccompressor.zip
+/zccompressor
+/*zccompressor.zip
 !/libs/ffmpeg/download_link.txt
 /libs/mac_ffmpeg/*
 !/libs/mac_ffmpeg/download_link.txt
@@ -12,6 +12,10 @@ log.*
 *.log
 /bkp
 /*.cmd
-!/build.cmd
 /*.ps1
+/*.sh
+!/build.cmd
+!/linux_build.sh
+!/mac_build.sh
+!/linux_make_app.sh
 /zccompressor.7z
